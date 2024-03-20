@@ -1,0 +1,88 @@
+int ledPin = 13; // LED pin
+int buttonPin = 2; // Push button pin
+
+// Morse code patterns for each letter in my name i.e'Bhanu'
+const char* morseB = "-..."; // Line (long blink), dot (short blink)
+const char* morseH = "...."; // Dot (short blink)
+const char* morseA = ".-"; // Line (long blink), dot (short blink)
+const char* morseN = "-."; // Line (long blink), dot (short blink)
+const char* morseU = "..-"; // Dot (short blink)
+
+int dotDelay = 200; // delay between dots and dashes
+
+boolean isBlinking = false; // Flag to track if blinking is active
+boolean buttonState = false; // Current state of the push button
+boolean lastButtonState = false; // Previous state of the push button
+unsigned long lastDebounceTime = 0; // Last time the button state changed
+unsigned long debounceDelay = 50; // Debounce delay to prevent bouncing
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP); // Internal pull-up resistor for the button
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Read the state of the push button and debounce it
+  int reading = digitalRead(buttonPin);
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+
+  if (millis() - lastDebounceTime > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // If button is pressed, toggle blinking state or reset blinking if already blinking
+      if (buttonState == LOW) {
+        if (isBlinking) {
+          resetBlinking(); // Stop blinking and reset if already blinking
+        } else {
+          isBlinking = true;
+          blinkName(); // Start blinking if not already blinking
+        }
+        delay(50); // Debounce delay for button press
+      }
+    }
+  }
+
+  lastButtonState = reading;
+}
+
+void blinkName() {
+  // Blinking my name 'Bhanu' in Morse code
+  flashMorse(morseB);
+  delay(dotDelay * 3); // delay between letters
+  flashMorse(morseH);
+  delay(dotDelay * 3); // delay between letters
+  flashMorse(morseA);
+  delay(dotDelay * 3); // delay between letters
+  flashMorse(morseN);
+  delay(dotDelay * 3); // delay between letters
+  flashMorse(morseU);
+}
+
+void resetBlinking() {
+  isBlinking = false;
+  digitalWrite(ledPin, LOW); // Turn off LED
+}
+
+void flashMorse(const char* morse) {
+  int i = 0;
+  while (morse[i] != '\0') {
+    flashDotOrDash(morse[i]);
+    i++;
+  }
+  delay(dotDelay * 3); // delay between dots and dashes
+}
+
+void flashDotOrDash(char dotOrDash) {
+  digitalWrite(ledPin, HIGH);
+  if (dotOrDash == '.') {
+    delay(dotDelay); // Short blink
+  } else { // must be a dash
+    delay(dotDelay * 3); // Long blink
+  }
+  digitalWrite(ledPin, LOW);
+  delay(dotDelay); // delay between dots and dashes
+}
